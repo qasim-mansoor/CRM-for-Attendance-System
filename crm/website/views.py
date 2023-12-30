@@ -3,6 +3,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from .models import Customer
 from .forms import AddRecordForm
+import cv2
 
 # Create your views here.
 def home(request):
@@ -70,4 +71,41 @@ def update_record(request, pk):
     else:
         messages.success(request, "You must be logged in to view this page.")
         return redirect('home')
+
+def capture_image(request, file_path):
+    # Initialize the camera
+    # cap = cv2.VideoCapture("rtsp://admin:vaival123@192.168.1.108:554/cam/realmonitor?channel=1&subtype=1")
+    cap = cv2.VideoCapture(0)
+    # Check if the camera opened successfully
+    if not cap.isOpened():
+        messages.success(request, "Error: Could not open camera.")
+        return
+
+    # Capture a single frame
+    ret, frame = cap.read()
+
+    if not ret:
+        messages.success(request, "Error: Could not capture frame.")
+        cap.release()
+        return
+
+    # Save the captured frame as an image
+    cv2.imwrite(file_path, frame)
+
+    # Release the camera
+    cap.release()
+
+    messages.success(request, f"Image captured and saved as {file_path}")
+
+def take_pictures(request, pk):
+    if request.user.is_authenticated:
+        current_record = Customer.objects.get(id=pk)
+
+        for i in range(1,2):
+            capture_image(request, f'{current_record.customer_name}{i}.jpg')
+
+        return redirect("record", pk)
+
+
+    
         
