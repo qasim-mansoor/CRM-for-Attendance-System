@@ -4,6 +4,9 @@ from django.contrib import messages
 from .models import Customer
 from .forms import AddRecordForm
 import cv2
+from .livefeed import VideoCamera
+from django.views.decorators import gzip
+from django.http import StreamingHttpResponse
 
 # Create your views here.
 def home(request):
@@ -105,6 +108,22 @@ def take_pictures(request, pk):
             capture_image(request, f'{current_record.customer_name}{i}.jpg')
 
         return redirect("record", pk)
+    
+
+def gen(camera):
+    while True:
+        frame = camera.get_frame()
+        yield (b'--frame\r\n'
+               b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n\r\n')
+        
+@gzip.gzip_page
+def live(request):
+    try:
+        cam = VideoCamera()
+        return StreamingHttpResponse(gen(cam), content_type="multipart/x-mixed-replace;boundary=frame")
+    except:
+        pass
+    return render(request, 'home.html')
 
 
     
