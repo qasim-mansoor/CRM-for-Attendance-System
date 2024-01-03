@@ -3,6 +3,7 @@
 {% block content %}
     <a href="{% url 'take_pictures' customer_record.id %}" class="btn btn-primary">Take Pictures</a>
     {% comment %} <a href="{% url 'live' %}" class="btn btn-primary" target="_blank">View Live Feed</a> {% endcomment %}
+    <a href="{% url 'test' %}" class="btn btn-primary">Test Pictures</a>
     <form class="pt-4 pb-4">
         <fieldset disabled>
           <legend><strong>Customer Record</strong></legend>

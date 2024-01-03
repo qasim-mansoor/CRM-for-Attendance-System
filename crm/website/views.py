@@ -7,6 +7,7 @@ import cv2
 from .livefeed import VideoCamera
 from django.views.decorators import gzip
 from django.http import StreamingHttpResponse
+import os
 
 # Create your views here.
 def home(request):
@@ -103,9 +104,16 @@ def capture_image(request, file_path):
 def take_pictures(request, pk):
     if request.user.is_authenticated:
         current_record = Customer.objects.get(id=pk)
+        template_name = './db2/' + str(pk) + ' ' + str(current_record.customer_name)
+        # print(template_name)
 
-        for i in range(1,2):
-            capture_image(request, f'{current_record.customer_name}{i}.jpg')
+        if not os.path.isdir(template_name):
+            os.mkdir(template_name)
+
+        # print(len(os.listdir(template_name)))
+
+        
+        capture_image(request, f'{template_name}/{current_record.customer_name}{len(os.listdir(template_name)) + 1}.jpg')
 
         return redirect("record", pk)
     
@@ -124,6 +132,36 @@ def live(request):
     except:
         pass
     return render(request, 'home.html')
+
+def test(request):
+    cam = cv2.VideoCapture(0)
+
+    cv2.namedWindow("test")
+
+    img_counter = 0
+
+    while True:
+        ret, frame = cam.read()
+        if not ret:
+            print("failed to grab frame")
+            break
+        cv2.imshow("test", frame)
+
+        k = cv2.waitKey(1)
+        if k%256 == 27:
+            # ESC pressed
+            print("Escape hit, closing...")
+            break
+        elif k%256 == 32:
+            # SPACE pressed
+            img_name = "opencv_frame_{}.png".format(img_counter)
+            cv2.imwrite(img_name, frame)
+            print("{} written!".format(img_name))
+            img_counter += 1
+
+    cam.release()
+
+    cv2.destroyAllWindows()
 
 
     

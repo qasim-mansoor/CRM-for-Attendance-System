@@ -11,4 +11,5 @@ urlpatterns = [
     path('update_record/<int:pk>', views.update_record, name='update_record'),
     path('take_pictures/<int:pk>', views.take_pictures, name='take_pictures'),
     path('live/', views.live, name='live'),
+    path('test/', views.test, name='test'),
 ]
