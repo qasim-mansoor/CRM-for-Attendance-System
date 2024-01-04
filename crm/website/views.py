@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from .models import Customer
@@ -8,6 +8,9 @@ from .livefeed import VideoCamera
 from django.views.decorators import gzip
 from django.http import StreamingHttpResponse
 import os
+
+def custom_404(request, exception):
+    return render(request, '404.html', status=404)
 
 # Create your views here.
 def home(request):
@@ -34,15 +37,24 @@ def logout_user(request):
 
 def customer_record(request, pk):
     if request.user.is_authenticated:
-        customer_record = Customer.objects.get(id=pk)
-        return render(request, 'record.html', {'customer_record': customer_record})
+        # customer_record = Customer.objects.get(id=pk)
+        customer_record = get_object_or_404(Customer, id=pk)
+        template_name = './db2/' + str(pk) + ' ' + str(customer_record.customer_name)
+        if not os.path.isdir(template_name):
+            os.mkdir(template_name)
+        images = os.listdir(template_name)
+        # print(images)
+        images_with_path = list(map(lambda x: str(pk) + ' ' + str(customer_record.customer_name) + '/' + x, images))
+        # print(images_with_path)
+        return render(request, 'record.html', {'customer_record': customer_record, "images": images_with_path})
     else:
         messages.success(request, "You must be logged in to view this page.")
         return redirect('home')
     
 def delete_record(request, pk):
     if request.user.is_authenticated:
-        delete_it = Customer.objects.get(id=pk)
+        # delete_it = Customer.objects.get(id=pk)
+        delete_it = get_object_or_404(Customer, id=pk)
         delete_it.delete()
         messages.success(request, "Record deleted successfully.")
         return redirect('home')
@@ -65,7 +77,8 @@ def add_record(request):
     
 def update_record(request, pk):
     if request.user.is_authenticated:
-        current_record = Customer.objects.get(id=pk)
+        # current_record = Customer.objects.get(id=pk)
+        current_record = get_object_or_404(Customer, id=pk)
         form = AddRecordForm(request.POST or None, instance=current_record)
         if form.is_valid():
             form.save()
@@ -103,7 +116,8 @@ def capture_image(request, file_path):
 
 def take_pictures(request, pk):
     if request.user.is_authenticated:
-        current_record = Customer.objects.get(id=pk)
+        # current_record = Customer.objects.get(id=pk)
+        current_record = get_object_or_404(Customer, id=pk)
         template_name = './db2/' + str(pk) + ' ' + str(current_record.customer_name)
         # print(template_name)
 
@@ -133,7 +147,7 @@ def live(request):
         pass
     return render(request, 'home.html')
 
-def test(request):
+async def test(request):
     cam = cv2.VideoCapture(0)
 
     cv2.namedWindow("test")
@@ -162,6 +176,12 @@ def test(request):
     cam.release()
 
     cv2.destroyAllWindows()
+
+def camera(request, pk):
+    if request.user.is_authenticated:
+        # current_record = Customer.objects.get(id=pk)
+        current_record = get_object_or_404(Customer, id=pk)
+        return render(request, "camera.html", {"current_record" : current_record})
 
 
     

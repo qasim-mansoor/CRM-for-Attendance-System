@@ -12,4 +12,5 @@ urlpatterns = [
     path('take_pictures/<int:pk>', views.take_pictures, name='take_pictures'),
     path('live/', views.live, name='live'),
     path('test/', views.test, name='test'),
+    path('camera/<int:pk>', views.camera, name='camera')
 ]

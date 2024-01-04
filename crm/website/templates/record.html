@@ -1,9 +1,12 @@
 {% extends "base.html" %}
+{% load static %}
 
 {% block content %}
-    <a href="{% url 'take_pictures' customer_record.id %}" class="btn btn-primary">Take Pictures</a>
+    <a href="{% url 'take_pictures' customer_record.id %}" class="btn btn-primary">Take Picture</a>
     {% comment %} <a href="{% url 'live' %}" class="btn btn-primary" target="_blank">View Live Feed</a> {% endcomment %}
-    <a href="{% url 'test' %}" class="btn btn-primary">Test Pictures</a>
+    {% comment %} <a href="{% url 'test' %}" class="btn btn-primary">Test Pictures</a> {% endcomment %}
+    {% comment %} <img src = "{% url 'live' %}"> {% endcomment %}
+    <a href="{% url 'camera' customer_record.id %}" class="btn btn-primary">View Camera</a>
     <form class="pt-4 pb-4">
         <fieldset disabled>
           <legend><strong>Customer Record</strong></legend>
@@ -38,13 +41,39 @@
           </div>
         </fieldset>
     </form>
+    <div class="container">
+      <div class="row row-cols-5">
+        {% for image in images %}
+        <div class="col pb-4">
+          <img src="{% static image %}" width="200px"/>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
     <a href="{% url 'home' %}" class="btn btn-secondary">Back</a>
     <a href="{% url 'update_record' customer_record.id %}" class="btn btn-secondary">Update</a>
-    <a href="{% url 'delete_record' customer_record.id %}" class="btn btn-danger">Delete</a>
+    {% comment %} <a href="{% url 'delete_record' customer_record.id %}" class="btn btn-danger">Delete</a> {% endcomment %}
+    <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">Delete</button>
     
     <br/>
     <br/>
     <br/>
     <br/>
-
+    <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h1 class="modal-title fs-5" id="deleteModalLabel">Delete Member?</h1>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            <form action="{% url 'delete_record' customer_record.id %}" method="POST">
+              {% csrf_token %}
+              <input class="btn btn-danger" type="submit" value="Delete">
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
 {% endblock %}
