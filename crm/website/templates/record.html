@@ -2,15 +2,23 @@
 {% load static %}
 
 {% block content %}
-    <a href="{% url 'take_pictures' customer_record.id %}" class="btn btn-primary">Take Picture</a>
+    {% comment %} <a href="{% url 'take_pictures' customer_record.id %}" class="btn btn-primary">Take Picture</a> {% endcomment %}
     {% comment %} <a href="{% url 'live' %}" class="btn btn-primary" target="_blank">View Live Feed</a> {% endcomment %}
     {% comment %} <a href="{% url 'test' %}" class="btn btn-primary">Test Pictures</a> {% endcomment %}
     {% comment %} <img src = "{% url 'live' %}"> {% endcomment %}
     <a href="{% url 'camera' customer_record.id %}" class="btn btn-primary">View Camera</a>
-    <form class="pt-4 pb-4">
+    <div class="row justify-content-between mt-4">
+      <div class="col-4">
+        <legend><strong>Customer Record</strong></legend>
+      </div>
+      <div class="col-1">
+        <input type="checkbox" class="btn-check" id="btn-check-outlined" autocomplete="off">
+        {% comment %} <label class="btn btn-outline-primary" for="btn-check-outlined">Paid</label><br> {% endcomment %}
+      </div>
+    </div>
+    <form class="pb-4">
         <fieldset disabled>
-          <legend><strong>Customer Record</strong></legend>
-          
+
           <div class="mb-3">
             <label for="disabledTextInput" class="form-label">Customer Name</label>
             <input type="text" class="form-control" value="{{ customer_record.customer_name }}">
