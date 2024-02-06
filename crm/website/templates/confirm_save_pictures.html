@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+
+<div class="col-md-6 offset-md-3 text-center">
+    <img src="{% static img %}" width="600px"/>
+    <div class="mt-4">
+        <a href="{% url 'save' pk %}" class="btn btn-primary">Save Image</a>
+        <a href="{% url 'record' pk %}" class="btn btn-secondary">Discard</a>
+    </div>
+    <div class="mt-4">
+    </div>
+</div>
+
+{% endblock %}

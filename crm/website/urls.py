@@ -12,5 +12,7 @@ urlpatterns = [
     path('take_pictures/<int:pk>', views.take_pictures, name='take_pictures'),
     path('live/', views.live, name='live'),
     path('test/', views.test, name='test'),
-    path('camera/<int:pk>', views.camera, name='camera')
+    path('camera/<int:pk>', views.camera, name='camera'),
+    path('confirm_save/<int:pk>', views.confirm_save_pictures, name='confirm_save'),
+    path('save/<int:pk>', views.save_pictures, name='save'),
 ]
