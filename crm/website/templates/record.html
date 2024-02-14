@@ -6,7 +6,12 @@
     {% comment %} <a href="{% url 'live' %}" class="btn btn-primary" target="_blank">View Live Feed</a> {% endcomment %}
     {% comment %} <a href="{% url 'test' %}" class="btn btn-primary">Test Pictures</a> {% endcomment %}
     {% comment %} <img src = "{% url 'live' %}"> {% endcomment %}
-    <a href="{% url 'camera' customer_record.id %}" class="btn btn-primary">View Camera</a>
+    <div class="d-flex justify-content-between">
+      <a href="{% url 'camera' customer_record.id %}" class="btn btn-primary">View Camera</a>
+      {% comment %} <a href="{% url 'update_last_paid' customer_record.id %}" class="btn btn-success">Renew Membership</a> {% endcomment %}
+      <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#updateLastPaidModal">Renew Membership</button>
+      
+    </div>
     <div class="row justify-content-between mt-4">
       <div class="col-4">
         <legend><strong>Customer Record</strong></legend>
@@ -44,6 +49,10 @@
             <input type="text" class="form-control" value="{{ customer_record.package }}">
           </div>
           <div class="mb-3">
+            <label for="disabledTextInput" class="form-label">Last Payment Date</label>
+            <input type="text" class="form-control" value="{{ customer_record.last_paid }}">
+          </div>
+          <div class="mb-3">
             <label for="disabledTextInput" class="form-label">Remarks</label>
             <textarea class="form-control">{{ customer_record.remarks }}</textarea>
           </div>
@@ -79,6 +88,24 @@
             <form action="{% url 'delete_record' customer_record.id %}" method="POST">
               {% csrf_token %}
               <input class="btn btn-danger" type="submit" value="Delete">
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal fade" id="updateLastPaidModal" tabindex="-1" aria-labelledby="updateLastPaidModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h1 class="modal-title fs-5" id="updateLastPaidModalLabel">Renew Membership?</h1>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            <form action="{% url 'update_last_paid' customer_record.id %}" method="POST">
+              {% csrf_token %}
+              <input class="btn btn-success" type="submit" value="Renew">
             </form>
           </div>
         </div>

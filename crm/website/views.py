@@ -9,6 +9,8 @@ from django.views.decorators import gzip
 from django.http import StreamingHttpResponse
 import os
 import face_recognition
+import datetime
+from django.utils import timezone
 
 def custom_404(request, exception):
     return render(request, '404.html', status=404)
@@ -29,7 +31,10 @@ def home(request):
             messages.error(request, "There was an error logging in. Please try again.")
             return redirect('home')
     else:
-        return render(request, 'home.html', {'records':records})
+        active = [True if x.last_paid < timezone.now() - datetime.timedelta(days=31) else False for x in records]
+        print(active)
+        records_info = zip(records, active)
+        return render(request, 'home.html', {'records':records, "active":active, 'records_info':records_info})
 
 def logout_user(request):
     logout(request)
@@ -90,6 +95,24 @@ def update_record(request, pk):
         messages.error(request, "You must be logged in to view this page.")
         return redirect('home')
 
+def update_last_paid(request, pk):
+    if request.user.is_authenticated:
+        # current_record = Customer.objects.get(id=pk)
+        current_record = get_object_or_404(Customer, id=pk)
+        current_record.last_paid = datetime.datetime.now()
+        # current_record.last_paid = datetime.datetime.now() - datetime.timedelta(days=32)
+        current_record.save()
+        # form = AddRecordForm(request.POST or None, instance=current_record)
+        # if form.is_valid():
+        #     form.save()
+        #     messages.success(request, "Record has been updated.")
+        #     return redirect("home")
+        # return render(request, 'update_record.html', {"form": form})
+        return redirect('record', pk)
+    else:
+        messages.error(request, "You must be logged in to view this page.")
+        return redirect('home')
+    
 def detect_single_face(frame):
 
     rgb_frame = cv2.resize(frame, (0, 0), fx=0.25, fy=0.25)  # Convert frame to RGB format
@@ -172,8 +195,8 @@ def save_pictures(request, pk):
         template_name = './db2/' + str(pk) + ' ' + str(current_record.customer_name)
         temp_template = './temp'
         img = cv2.imread(f'{temp_template}/temp{len(os.listdir(temp_template))}.jpg')
-        cv2.imwrite(f'{template_name}/{current_record.customer_name}{len(os.listdir(template_name)) + 1}.jpg', img)
-        messages.success(request, f'Image saved on {template_name}/{current_record.customer_name}{len(os.listdir(template_name))}.jpg')
+        cv2.imwrite(f'{template_name}/{pk} {current_record.customer_name}{len(os.listdir(template_name)) + 1}.jpg', img)
+        messages.success(request, f'Image saved on {template_name}/{pk} {current_record.customer_name}{len(os.listdir(template_name))}.jpg')
         return redirect("record", pk)
     else:
         messages.error(request, "You must be logged in to view this page.")

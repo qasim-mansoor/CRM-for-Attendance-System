@@ -1,4 +1,5 @@
 from django.db import models
+from django.utils import timezone
 
 # Create your models here.
 class Customer(models.Model):
@@ -8,6 +9,7 @@ class Customer(models.Model):
     phone_number = models.CharField(max_length=15)
     emergency_number = models.CharField(max_length=15, blank=True)
     address = models.CharField(max_length=255, blank=True)
+    last_paid = models.DateTimeField(auto_now_add=True)
 
     PACKAGE_CHOICES = [
         ("Student", "Student"),
