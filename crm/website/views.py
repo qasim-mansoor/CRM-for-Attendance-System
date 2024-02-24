@@ -11,6 +11,8 @@ import os
 import face_recognition
 import datetime
 from django.utils import timezone
+from django.db.models import Q
+import pickle
 
 def custom_404(request, exception):
     return render(request, '404.html', status=404)
@@ -31,15 +33,88 @@ def home(request):
             messages.error(request, "There was an error logging in. Please try again.")
             return redirect('home')
     else:
-        active = [True if x.last_paid < timezone.now() - datetime.timedelta(days=31) else False for x in records]
-        print(active)
-        records_info = zip(records, active)
-        return render(request, 'home.html', {'records':records, "active":active, 'records_info':records_info})
+        # active = [True if x.last_paid < timezone.now() - datetime.timedelta(days=31) else False for x in records]
+        # print(active)
+        # records_info = zip(records, active)
+        # return render(request, 'home.html', {'records':records, "active":active, 'records_info':records_info})
+        if request.user.is_authenticated:
+            # logout(request)
+            return redirect("all_records")
+        else:
+            # logout(request)
+            return render(request, "home.html")
+            # return render(request, "home.html")
 
 def logout_user(request):
     logout(request)
     messages.success(request, "You have been logged out.")
     return redirect('home')
+
+def all_records(request):
+    if request.user.is_authenticated:
+        if request.method == "POST":
+            filter = request.POST.get("filter")
+            # print(f"The filter is {filter}")
+            if filter.isnumeric():
+                records = Customer.objects.filter(id=filter)
+            else:
+                records = Customer.objects.filter(Q(customer_name__icontains=filter))
+            post = True
+        else:
+            records = Customer.objects.all()
+            post = False
+
+        active = [True if x.last_paid < timezone.now() - datetime.timedelta(days=31) else False for x in records]
+        print(active)
+        records_info = zip(records, active)
+        return render(request, 'all_records.html', {'records':records, "active":active, 'records_info':records_info, 'post':post})
+    else:
+        messages.error(request, "You must be logged in to view this page.")
+        return redirect('home')
+
+def active_records(request):
+    if request.user.is_authenticated:
+        if request.method == "POST":
+            filter = request.POST.get("filter")
+            if filter.isnumeric():
+                records = Customer.objects.filter(id=filter)
+            else:
+                records = Customer.objects.filter(Q(customer_name__icontains=filter))
+            post = True
+        else:
+            records = Customer.objects.all()
+            post = False
+
+        # records = Customer.objects.all()
+        active = [True if x.last_paid < timezone.now() - datetime.timedelta(days=31) else False for x in records]
+        print(active)
+        records_info = zip(records, active)
+        return render(request, 'active_records.html', {'records':records, "active":active, 'records_info':records_info, 'post':post})
+    else:
+        messages.error(request, "You must be logged in to view this page.")
+        return redirect('home')
+
+def inactive_records(request):
+    if request.user.is_authenticated:
+        if request.method == "POST":
+            filter = request.POST.get("filter")
+            if filter.isnumeric():
+                records = Customer.objects.filter(id=filter)
+            else:
+                records = Customer.objects.filter(Q(customer_name__icontains=filter))
+            post = True
+        else:
+            records = Customer.objects.all()
+            post = False
+
+        # records = Customer.objects.all()
+        active = [True if x.last_paid < timezone.now() - datetime.timedelta(days=31) else False for x in records]
+        print(active)
+        records_info = zip(records, active)
+        return render(request, 'inactive_records.html', {'records':records, "active":active, 'records_info':records_info, 'post':post})
+    else:
+        messages.error(request, "You must be logged in to view this page.")
+        return redirect('home')
 
 def customer_record(request, pk):
     if request.user.is_authenticated:
@@ -188,6 +263,52 @@ def confirm_save_pictures(request, pk):
         messages.error(request, "You must be logged in to view this page.")
         return redirect('home')
 
+def update_encodings(image_path:str):
+    """
+    Updates a dictionary of face encodings with new encodings from an image and creates a backup before overwriting the pkl file.
+
+    Args:
+        image_path: The path to the image file.
+
+    Returns:
+        None
+    """
+    print(image_path)
+    # Check if encodings.pkl exists
+    # if os.path.exists("encodings.pkl"):
+    #     # Create a backup with current timestamp
+    #     timestamp = os.path.getmtime("encodings.pkl")
+    #     backup_path = f"encodings_backup_{timestamp}.pkl"
+    #     os.rename("encodings.pkl", backup_path)
+    #     print(f"Created backup of encodings.pkl: {backup_path}")
+
+    try:
+    # Load existing encodings
+        print("Encodings found")
+        with open("encodings.pkl", "rb") as f:
+            known_encodings = pickle.load(f)
+
+    except FileNotFoundError:
+        print("Encodings not found")
+        # If file doesn't exist, create an empty dictionary
+        known_encodings = {}
+
+    # Load the image
+    image = face_recognition.load_image_file(image_path)
+    encoding = face_recognition.face_encodings(image)[0]
+    known_encodings[image_path.split('/')[-1].split('.')[0]] = encoding
+
+    # Save the updated dictionary
+    with open("encodings.pkl", "wb") as f:
+        pickle.dump(known_encodings, f)
+
+    print(f"Updated encodings.pkl with new encodings.")
+
+
+    # # Example usage
+    # image_path = "path/to/your/image.jpg"
+    # update_encodings(image_path)
+
 def save_pictures(request, pk):
     
     if request.user.is_authenticated:
@@ -197,6 +318,7 @@ def save_pictures(request, pk):
         img = cv2.imread(f'{temp_template}/temp{len(os.listdir(temp_template))}.jpg')
         cv2.imwrite(f'{template_name}/{pk} {current_record.customer_name}{len(os.listdir(template_name)) + 1}.jpg', img)
         messages.success(request, f'Image saved on {template_name}/{pk} {current_record.customer_name}{len(os.listdir(template_name))}.jpg')
+        update_encodings(f"{template_name}/{pk} {current_record.customer_name}{len(os.listdir(template_name))}.jpg")
         return redirect("record", pk)
     else:
         messages.error(request, "You must be logged in to view this page.")

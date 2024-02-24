@@ -16,4 +16,7 @@ urlpatterns = [
     path('camera/<int:pk>', views.camera, name='camera'),
     path('confirm_save/<int:pk>', views.confirm_save_pictures, name='confirm_save'),
     path('save/<int:pk>', views.save_pictures, name='save'),
+    path('records/', views.all_records, name='all_records'),
+    path('records/active/', views.active_records, name='active_records'),
+    path('records/inactive', views.inactive_records, name='inactive_records'),
 ]

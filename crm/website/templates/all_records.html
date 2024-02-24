@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <form method="POST" action="{% url 'all_records' %}">
+                    {% csrf_token %}
+                    <div class="input-group mb-3">
+                        <input type="text" class="form-control" placeholder="Search" aria-label="Search" aria-describedby="button-addon2" name="filter" id="filter">
+                        <button class="btn btn-primary" type="submit" id="button-addon2">Search</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div> 
+    <div class="d-flex justify-content-between mb-4">
+        
+        <div class="col-4">
+            <legend><strong>Customers</strong></legend>
+        </div>
+
+        {% comment %} <a href="{% url 'update_last_paid' customer_record.id %}" class="btn btn-success">Renew Membership</a> {% endcomment %}
+        <div class="btn-group" role="group" aria-label="Basic example">
+            <a href="{% url 'all_records' %}" class="btn btn-secondary {% if not post %} disabled {% endif %}">All</a>
+            <a href="{% url 'active_records' %}" class="btn btn-secondary">Active</a>
+            <a href="{% url 'inactive_records' %}" class="btn btn-secondary">Inactive</a>
+        </div>
+        
+    </div>
+    
+    <table class="table table-striped table-hover">
+        <thead class="table-dark">
+          <tr>
+            <th scope="col">Member ID</th>
+            <th scope="col">Customer Name</th>
+            <th scope="col">Father Name</th>
+            <th scope="col">Phone Number</th>
+            <th scope="col">Emergency Number</th>
+            <th scope="col">Address</th>
+            <th scope="col">Package</th>
+          </tr>
+        </thead>
+        <tbody>
+            {% if records %}
+                {% for record, active in records_info %}
+                    <tr onclick="window.location='{% url 'record' record.id %}'" style="cursor:pointer" {% if active %} class="table-danger" {% endif %}>
+                        <td style="max-width: 150px;" class="text-truncate">{{ record.id }}</td>
+                        <td style="max-width: 160px;" class="text-truncate">{{ record.customer_name }}</td>
+                        <td style="max-width: 160px;" class="text-truncate">{{ record.father_name }}</td>
+                        <td style="max-width: 175px;" class="text-truncate">{{ record.phone_number }}</td>
+                        <td style="max-width: 175px;" class="text-truncate">{{ record.emergency_number }}</td>
+                        <td style="max-width: 370px;" class="text-truncate">{{ record.address }}</td>
+                        <td style="max-width: 75px;" class="text-truncate">{{ record.package }}</td>       
+                    </tr>
+                {% endfor %}
+            {% endif %}
+        </tbody>
+    </table>    
+
+{% endblock %}
