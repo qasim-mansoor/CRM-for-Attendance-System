@@ -14,7 +14,6 @@ import pickle
 from .models import Customer
 from .forms import AddRecordForm
 from .livefeed import VideoCamera
-from datetime import timedelta
 
 def custom_404(request, exception):
     return render(request, '404.html', status=404)
@@ -244,10 +243,10 @@ def capture_image(request):
         cap.release()
         return None
     
-    if not detect_single_face(frame):
-        messages.error(request, "Either a face could not be detected or more than 1 face was detected. Make sure the person is centered in the frame with an empty background.")
-        cap.release()
-        return None
+    # if not detect_single_face(frame):
+    #     messages.error(request, "Either a face could not be detected or more than 1 face was detected. Make sure the person is centered in the frame with an empty background.")
+    #     cap.release()
+    #     return None
 
     # Save the captured frame as an image
     # cv2.imwrite(file_path, frame)
@@ -407,7 +406,3 @@ def camera(request, pk):
         # current_record = Customer.objects.get(id=pk)
         current_record = get_object_or_404(Customer, id=pk)
         return render(request, "camera.html", {"current_record" : current_record})
-
-
-    
-        

@@ -102,6 +102,8 @@ TIME_ZONE = 'Asia/Karachi'
 
 USE_I18N = True
 
+USE_L10N = True
+
 USE_TZ = True
 
 
@@ -115,3 +117,4 @@ STATICFILES_DIRS = ['C:/Users/qasim/OneDrive/Desktop/CRM for Attendance System/c
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+DATETIME_FORMAT="%Y-%m-%d"
