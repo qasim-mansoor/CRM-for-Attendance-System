@@ -1,22 +1,28 @@
 from django import forms
 from .models import Customer
+import calendar
+from django.utils import timezone
+from datetime import timedelta
 
 class AddRecordForm(forms.ModelForm):
-    customer_name = forms.CharField(required=False, widget=forms.widgets.TextInput(attrs={"placeholder":"Customer Name", "class":"form-control"}), label="")
-    father_name = forms.CharField(required=False,widget=forms.widgets.TextInput(attrs={"placeholder":"Father Name", "class":"form-control"}), label="")
-    nationality = forms.CharField(required=False,widget=forms.widgets.TextInput(attrs={"placeholder":"Nationality", "class":"form-control"}), label="")
-    cnic = forms.CharField(required=False,widget=forms.widgets.TextInput(attrs={"placeholder":"CNIC/Passport Number", "class":"form-control"}), label="")
-    phone_number = forms.CharField(required=False, widget=forms.widgets.TextInput(attrs={"placeholder":"Phone Number", "class":"form-control"}), label="")
-    emergency_number = forms.CharField(required=False, widget=forms.widgets.TextInput(attrs={"placeholder":"Emergency Number", "class":"form-control"}), label="")
-    address = forms.CharField(required=False, widget=forms.widgets.TextInput(attrs={"placeholder":"Address", "class":"form-control"}), label="")
-    relationship = forms.CharField(required=False, widget=forms.widgets.TextInput(attrs={"placeholder":"Relationship", "class":"form-control"}), label="")
-    voucher_number = forms.CharField(required=False, widget=forms.widgets.TextInput(attrs={"placeholder":"Voucher Number", "class":"form-control"}), label="")
-    monthly_fee = forms.CharField(required=False, widget=forms.widgets.TextInput(attrs={"placeholder":"Monthly Fee", "class":"form-control"}), label="")
-    assigned_trainer = forms.CharField(required=False, widget=forms.widgets.TextInput(attrs={"placeholder":"Assigned Trainer", "class":"form-control"}), label="")
-    special_training_fee = forms.CharField(required=False, widget=forms.widgets.TextInput(attrs={"placeholder":"Special Training Fee", "class":"form-control"}), label="")
-    package = forms.CharField(label="", widget=forms.Select(choices=Customer.PACKAGE_CHOICES, attrs={"class":"form-control"}))
-    remarks = forms.CharField(required=False, widget=forms.widgets.Textarea(attrs={"placeholder":"Remarks", "class":"form-control"}), label="")
+    customer_name = forms.CharField(required=False, widget=forms.widgets.TextInput(attrs={"class":"form-control"}), label="Customer Name")
+    father_name = forms.CharField(required=False,widget=forms.widgets.TextInput(attrs={"class":"form-control"}), label="Father Name")
+    nationality = forms.CharField(required=False,widget=forms.widgets.TextInput(attrs={"class":"form-control"}), label="Nationality")
+    cnic = forms.CharField(required=False,widget=forms.widgets.TextInput(attrs={"class":"form-control"}), label="CNIC/Passport Number")
+    phone_number = forms.CharField(required=False, widget=forms.widgets.TextInput(attrs={"class":"form-control"}), label="Phone Number")
+    emergency_number = forms.CharField(required=False, widget=forms.widgets.TextInput(attrs={"class":"form-control"}), label="Emergency Number")
+    address = forms.CharField(required=False, widget=forms.widgets.TextInput(attrs={"class":"form-control"}), label="Address")
+    relationship = forms.CharField(required=False, widget=forms.widgets.TextInput(attrs={"class":"form-control"}), label="Relationship")
+    voucher_number = forms.CharField(required=False, widget=forms.widgets.TextInput(attrs={"class":"form-control"}), label="Voucher Number")
+    monthly_fee = forms.CharField(required=False, widget=forms.widgets.TextInput(attrs={"class":"form-control"}), label="Monthly Fee")
+    assigned_trainer = forms.CharField(required=False, widget=forms.widgets.TextInput(attrs={"class":"form-control"}), label="Assigned Trainer")
+    special_training_fee = forms.CharField(required=False, widget=forms.widgets.TextInput(attrs={"class":"form-control"}), label="Special Training Fee")
+    package = forms.CharField(label="Package", widget=forms.Select(choices=Customer.PACKAGE_CHOICES, attrs={"class":"form-control"}))
+    remarks = forms.CharField(required=False, widget=forms.widgets.Textarea(attrs={"class":"form-control"}), label="Remarks")
+
+    due_date = forms.DateField(label="Due Date", widget=forms.widgets.DateInput(attrs={'type': 'date', "class":"form-control"}), initial=timezone.now() + timedelta(days=(calendar.monthrange(timezone.now().year, timezone.now().month)[1])))
+
 
     class Meta:
         model = Customer
-        exclude = ("user", "due_date")
+        exclude = ("user",)

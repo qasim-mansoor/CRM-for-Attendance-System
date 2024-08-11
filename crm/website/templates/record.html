@@ -10,7 +10,7 @@
       <a href="{% url 'camera' customer_record.id %}" class="btn btn-primary">View Camera</a>
       {% comment %} <a href="{% url 'update_last_paid' customer_record.id %}" class="btn btn-success">Renew Membership</a> {% endcomment %}
       <div> 
-        <button type="button" class="btn btn-success mr-4" data-bs-toggle="modal" data-bs-target="#extendMembershipModal">Extend Membership</button>
+        {% comment %} <button type="button" class="btn btn-success mr-4" data-bs-toggle="modal" data-bs-target="#extendMembershipModal">Extend Membership</button> {% endcomment %}
         <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#updateLastPaidModal">Renew Membership</button>
       </div>
       
@@ -143,13 +143,27 @@
             <h1 class="modal-title fs-5" id="updateLastPaidModalLabel">Renew Membership?</h1>
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-            <form action="{% url 'update_last_paid' customer_record.id %}" method="POST">
+          <div class="modal-body">
+            <fieldset disabled>
+              <div class="mb-3">
+                <label for="disabledTextInput" class="form-label">Last Payment Date</label>
+                <input type="text" class="form-control" value="{{ customer_record.last_paid }}">
+              </div>
+              <div class="mb-3">
+                <label for="disabledTextInput" class="form-label">Last Due Date</label>
+                <input type="text" class="form-control" value="{{ customer_record.due_date }}">
+              </div>
+            </fieldset>
+            <form action="{% url 'record' customer_record.id %}" method="POST">
               {% csrf_token %}
-              <input class="btn btn-success" type="submit" value="Renew">
+              <label for="new_due" class="form-label">New Due Date</label>
+              <input type="date" class="form-control" name="new_due" id="new_due" value="{{ new_due }}" min="{{ date_min }}">
+              <button class="btn btn-success mt-4" type="submit">Renew</button>
+              <button type="button" class="btn btn-secondary mt-4" data-bs-dismiss="modal">Close</button>
             </form>
           </div>
+          {% comment %} <div class="modal-footer">
+          </div> {% endcomment %}
         </div>
       </div>
     </div>

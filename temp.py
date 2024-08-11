@@ -1,3 +1,75 @@
+from django.db import models
+from django.utils import timezone
+from datetime import timedelta, datetime
+import calendar
+
+# def days_in_month():
+
+#     return calendar.monthrange(dt.year, dt.month)[1]
+
+# Create your models here.
+class Customer(models.Model):
+    # created_at = models.DateTimeField(auto_now_add=True)
+    admission_date = models.DateTimeField(auto_now_add=True, null=True)
+    customer_name = models.CharField(max_length=255, blank=True, null=True)
+    father_name = models.CharField(max_length=255, blank=True, null=True)
+    nationality = models.CharField(max_length=255, blank=True, null=True)
+    cnic = models.CharField(max_length=255, blank=True, null=True)
+    phone_number = models.CharField(max_length=100, blank=True, null=True)
+    emergency_number = models.CharField(max_length=100, blank=True, null=True)
+    address = models.CharField(max_length=255, blank=True, null=True)
+    relationship = models.CharField(max_length=255, blank=True, null=True)
+    voucher_number = models.CharField(max_length=255, blank=True, null=True)
+    monthly_fee = models.CharField(max_length=255, blank=True, null=True)
+    assigned_trainer = models.CharField(max_length=255, blank=True, null=True)
+    special_training_fee = models.CharField(max_length=255, blank=True, null=True)
+    last_paid = models.DateTimeField(auto_now_add=True)
+    due_date = models.DateTimeField(blank=True, null=True)
+
+    PACKAGE_CHOICES = [
+        ("Staff Member", "Staff Member"),
+        ("Deans Employee", "Deans Employee"),
+        ("Resident", "Resident"),
+        ("General", "General"),
+        ("Student", "Student"),
+        ("Other", "Other"),
+    ]
+    package = models.CharField(max_length=30, blank=True, null=True)
+
+    remarks = models.TextField(blank=True, null=True)
+
+    def __str__(self):
+        return(f"{self.customer_name}")
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._original_last_paid = getattr(self, 'last_paid', None)
+
+    @classmethod
+    def from_db(cls, db, field_names, values):
+        instance = super().from_db(db, field_names, values)
+        instance._original_last_paid = instance.last_paid
+        return instance
+    
+    def save(self, extend=0, renew=0, *args, **kwargs):
+        extend = int(extend)
+        renew = int(renew)
+        if self._original_last_paid != self.last_paid or self.due_date == None:
+            self.due_date = timezone.now() + timedelta(days=(renew)+extend)
+            self._original_last_paid = self.last_paid
+
+        if extend > 0:
+            self.due_date = self.due_date + timedelta(days=extend)
+        
+        # # Calculate due date based on last_paid
+        # self.due_date = timezone.now() + timedelta(days=(31+extend))  # Add 31 days for next month
+        # # Adjust for edge cases where the next month has less than 31 days
+        # if self.due_date.month == timezone.now().month:
+        #     # If calculated date falls in the same month, add another month
+        super().save(*args, **kwargs)
+
+
+
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
@@ -15,7 +87,6 @@ from .models import Customer
 from .forms import AddRecordForm
 from .livefeed import VideoCamera
 from datetime import timedelta
-import calendar
 
 def custom_404(request, exception):
     return render(request, '404.html', status=404)
@@ -146,26 +217,11 @@ def inactive_records(request):
 def customer_record(request, pk):
     if request.user.is_authenticated:
         customer_record = get_object_or_404(Customer, id=pk)
-        form = AddRecordForm(instance=customer_record)
-        new_due = max(customer_record.due_date, timezone.now()) + timedelta(days=(calendar.monthrange(timezone.now().year, timezone.now().month)[1]))
-        new_due = new_due.strftime("%Y-%m-%d")
-        date_min = customer_record.due_date + timedelta(days=1)
-        date_min = date_min.strftime("%Y-%m-%d")
         if request.method == "POST":
-            new_due = request.POST.get("new_due")
-            # print(new_due)
-            # setattr(form['last_paid'], form['due_date'])
-            # setattr(form["due_date"], new_due)
-            
-            customer_record.last_paid = max(customer_record.due_date, timezone.now())
-    
-            customer_record.due_date = new_due
-            customer_record.save()
-            # form['last_paid'] = form['due_date']
-            # form["due_date"] = new_due
-            # form.save()
+            extendby = request.POST.get("extend")
+            # print(extendby)
             # customer_record.due_date += timedelta(days=int(extendby)) 
-            # customer_record.save(extend=int(extendby))
+            customer_record.save(extend=int(extendby))
             return redirect('record', pk)
         # customer_record = Customer.objects.get(id=pk)
         template_name = './db2/' + str(pk)
@@ -175,7 +231,7 @@ def customer_record(request, pk):
         # print(images)
         images_with_path = list(map(lambda x: str(pk) + '/' + x, images))
         # print(images_with_path)
-        return render(request, 'record.html', {'customer_record': customer_record, "images": images_with_path, "form":form, "new_due":new_due, "date_min": date_min})
+        return render(request, 'record.html', {'customer_record': customer_record, "images": images_with_path})
     else:
         messages.error(request, "You must be logged in to view this page.")
         return redirect('home')
@@ -196,7 +252,10 @@ def add_record(request):
     if request.user.is_authenticated:
         if request.method == "POST":
             if form.is_valid():
+                print(form['membership_days'].value())
                 add_record = form.save()
+                add_record.save(renew=form['membership_days'].value())
+                print(type(add_record))
                 messages.success(request, "Member Added.")
                 return redirect("home")
         return render(request, 'add_record.html', {"form": form})
@@ -427,3 +486,40 @@ def camera(request, pk):
 
     
         
+from django import forms
+from .models import Customer
+from django.utils import timezone
+import calendar
+
+class AddRecordForm(forms.ModelForm):
+    customer_name = forms.CharField(required=False, widget=forms.widgets.TextInput(attrs={"placeholder":"Customer Name", "class":"form-control"}), label="")
+    father_name = forms.CharField(required=False,widget=forms.widgets.TextInput(attrs={"placeholder":"Father Name", "class":"form-control"}), label="")
+    nationality = forms.CharField(required=False,widget=forms.widgets.TextInput(attrs={"placeholder":"Nationality", "class":"form-control"}), label="")
+    cnic = forms.CharField(required=False,widget=forms.widgets.TextInput(attrs={"placeholder":"CNIC/Passport Number", "class":"form-control"}), label="")
+    phone_number = forms.CharField(required=False, widget=forms.widgets.TextInput(attrs={"placeholder":"Phone Number", "class":"form-control"}), label="")
+    emergency_number = forms.CharField(required=False, widget=forms.widgets.TextInput(attrs={"placeholder":"Emergency Number", "class":"form-control"}), label="")
+    address = forms.CharField(required=False, widget=forms.widgets.TextInput(attrs={"placeholder":"Address", "class":"form-control"}), label="")
+    relationship = forms.CharField(required=False, widget=forms.widgets.TextInput(attrs={"placeholder":"Relationship", "class":"form-control"}), label="")
+    voucher_number = forms.CharField(required=False, widget=forms.widgets.TextInput(attrs={"placeholder":"Voucher Number", "class":"form-control"}), label="")
+    monthly_fee = forms.CharField(required=False, widget=forms.widgets.TextInput(attrs={"placeholder":"Monthly Fee", "class":"form-control"}), label="")
+    assigned_trainer = forms.CharField(required=False, widget=forms.widgets.TextInput(attrs={"placeholder":"Assigned Trainer", "class":"form-control"}), label="")
+    special_training_fee = forms.CharField(required=False, widget=forms.widgets.TextInput(attrs={"placeholder":"Special Training Fee", "class":"form-control"}), label="")
+    package = forms.CharField(label="", widget=forms.Select(choices=Customer.PACKAGE_CHOICES, attrs={"class":"form-control"}))
+    remarks = forms.CharField(required=False, widget=forms.widgets.Textarea(attrs={"placeholder":"Remarks", "class":"form-control"}), label="")
+
+    class Meta:
+        model = Customer
+        exclude = ("user", "due_date")
+
+    membership_days =  forms.IntegerField(required=True, initial=calendar.monthrange(timezone.now().year, timezone.now().month)[1], widget=forms.widgets.NumberInput(attrs={"placeholder":"Days paid for", "class":"form-control"}), label ="Days Paid")
+
+    choices = [
+        (1, "1 day"),
+        (15, "15 days"),
+        (calendar.monthrange(timezone.now().year, timezone.now().month)[1], "1 month")
+    ]
+
+    # membership =  forms.IntegerField(label="", widget=forms.Select(choices=choices, attrs={"class":"form-control"}))
+    membership = forms.ChoiceField(label="", widget=forms.Select(
+    attrs={'class': 'form-control'}),
+    choices=choices)

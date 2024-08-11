@@ -51,21 +51,21 @@ class Customer(models.Model):
         instance._original_last_paid = instance.last_paid
         return instance
     
-    def save(self, extend=0, *args, **kwargs):
-        extend = int(extend)
-        if self._original_last_paid != self.last_paid or self.due_date == None:
-            self.due_date = timezone.now() + timedelta(days=(calendar.monthrange(timezone.now().year, timezone.now().month)[1])+extend)
-            self._original_last_paid = self.last_paid
+    # def save(self, extend=0, *args, **kwargs):
+    #     extend = int(extend)
+    #     if self._original_last_paid != self.last_paid or self.due_date == None:
+    #         self.due_date = timezone.now() + timedelta(days=(calendar.monthrange(timezone.now().year, timezone.now().month)[1])+extend)
+    #         self._original_last_paid = self.last_paid
 
-        if extend > 0:
-            self.due_date = self.due_date + timedelta(days=extend)
+    #     if extend > 0:
+    #         self.due_date = self.due_date + timedelta(days=extend)
         
-        # # Calculate due date based on last_paid
-        # self.due_date = timezone.now() + timedelta(days=(31+extend))  # Add 31 days for next month
-        # # Adjust for edge cases where the next month has less than 31 days
-        # if self.due_date.month == timezone.now().month:
-        #     # If calculated date falls in the same month, add another month
-        super().save(*args, **kwargs)
+    #     # # Calculate due date based on last_paid
+    #     # self.due_date = timezone.now() + timedelta(days=(31+extend))  # Add 31 days for next month
+    #     # # Adjust for edge cases where the next month has less than 31 days
+    #     # if self.due_date.month == timezone.now().month:
+    #     #     # If calculated date falls in the same month, add another month
+    #     super().save(*args, **kwargs)
 
 
 

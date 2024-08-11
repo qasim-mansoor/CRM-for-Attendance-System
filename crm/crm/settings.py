@@ -102,9 +102,9 @@ TIME_ZONE = 'Asia/Karachi'
 
 USE_I18N = True
 
-USE_L10N = True
+USE_L10N = False
 
-USE_TZ = True
+USE_TZ = False
 
 
 # Static files (CSS, JavaScript, Images)

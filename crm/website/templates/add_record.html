@@ -2,12 +2,16 @@
 
 {% block content %}
 
-<div class="col-md-6 offset-md-3">
+<div class="col-md-6 offset-md-3 mb-4">
     <form method='POST' action="{% url 'add_record' %}">
         {% csrf_token %}
-            {{ form.as_p }}
-        <button type="submit" class="btn btn-secondary">Add Member</button>
-        <a href="{% url 'home' %}" class="btn btn-secondary">Back</a>
+            {% comment %} {{ form.as_p }} {% endcomment %}
+            {% for field in form %}
+                <label class="form-label mt-3" for={{ field.auto_id }}>{{ field.label }}</label>
+                {{ field }}
+            {% endfor %}
+        <button type="submit" class="btn btn-secondary mt-4">Add Member</button>
+        <a href="{% url 'home' %}" class="btn btn-secondary mt-4">Back</a>
     </form>
 </div>
 
